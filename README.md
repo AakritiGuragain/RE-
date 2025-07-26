@@ -3,7 +3,7 @@
 <div align="center">
   <img src="https://via.placeholder.com/200x200/22c55e/ffffff?text=ReLoop" alt="ReLoop Logo" width="200" height="200">
   
-  <h3>🌱 Transforming Waste into Value for Kathmandu Valley 🌱</h3>
+  <h3> Transforming Waste into Value for Kathmandu Valley </h3>
   
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
   [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org/)
@@ -12,70 +12,70 @@
   [![NestJS](https://img.shields.io/badge/NestJS-10+-e0234e)](https://nestjs.com/)
 </div>
 
-## 🌟 Overview
+Overview
 
 ReLoop is a comprehensive community-driven waste transformation and recycling platform designed specifically for Kathmandu Valley, Nepal. The platform combines cutting-edge technology with environmental consciousness to create a sustainable ecosystem where waste becomes a valuable resource.
 
-### 🎯 Mission
+###  Mission
 To revolutionize waste management in Nepal by empowering communities, rewarding sustainable behavior, and creating economic opportunities through innovative recycling and upcycling initiatives.
 
-## ✨ Key Features
+## Key Features
 
-### 🔐 User Management & Authentication
+###  User Management & Authentication
 - **Secure Authentication**: JWT-based auth with 2FA support
 - **Role-Based Access Control**: USER, ADMIN, ARTIST, BRAND_PARTNER roles
 - **Profile Management**: Comprehensive user profiles with preferences
 - **Social Integration**: Community features and user interactions
 
-### 🗂️ Waste Tracking & Classification
+### Waste Tracking & Classification
 - **AI-Powered Classification**: Automatic waste categorization using machine learning
 - **Barcode Scanning**: Quick product identification and categorization
 - **Impact Tracking**: Real-time CO₂ savings and environmental impact metrics
 - **Smart Submissions**: Photo-based waste submission with validation
 
-### 🎁 Reward System
+### Reward System
 - **Points Economy**: Earn points for recycling activities
 - **Multiple Redemption Options**: Cash, art, event tickets, discounts
 - **Leaderboards**: Community rankings and achievements
 - **Transaction History**: Complete audit trail of all point activities
 
-### 🛒 Marketplace (Bazar)
+### Marketplace (Bazar)
 - **Upcycled Products**: Marketplace for recycled and upcycled goods
 - **Artist Collaboration**: Platform for local artists to sell eco-friendly creations
 - **Secure Payments**: Multiple payment gateways including local options (Khalti, eSewa)
 - **Order Management**: Complete e-commerce functionality
 
-### 👥 Community Features
+### Community Features
 - **Social Feed**: Share recycling achievements and tips
 - **Content Types**: Hotspots, achievements, tips, general posts
 - **Engagement**: Likes, comments, and social interactions
 - **Content Moderation**: AI-assisted content filtering
 
-### 📍 Drop Points & Logistics
+### Drop Points & Logistics
 - **Interactive Map**: Real-time drop point locations and status
 - **IoT Integration**: Smart bin monitoring with fill-level sensors
 - **Pickup Requests**: On-demand waste collection services
 - **Route Optimization**: Efficient logistics management
 
-### 🔔 Notifications System
+###  Notifications System
 - **Multi-Channel**: Email, SMS, push, and in-app notifications
 - **Smart Preferences**: Customizable notification settings
 - **Real-Time Updates**: Instant updates on activities and achievements
 - **Bulk Messaging**: Admin broadcast capabilities
 
-### 🎮 Gamification
+### Gamification
 - **Achievement Badges**: Unlock badges for various milestones
 - **Eco Missions**: Complete challenges for extra rewards
 - **Progress Tracking**: Visual progress indicators and statistics
 - **Impact Portfolio**: Personal environmental impact dashboard
 
-### 🔧 Admin & Analytics
+### Admin & Analytics
 - **Comprehensive Dashboard**: Real-time analytics and insights
 - **User Management**: Advanced user administration tools
 - **Content Moderation**: Efficient content review and management
 - **System Configuration**: Flexible platform configuration options
 
-### 🌐 Integrations
+### Integrations
 - **AI Services**: Google Cloud AI, custom TensorFlow models
 - **Payment Gateways**: Stripe, Khalti, eSewa, Fonepay
 - **Maps & Location**: Google Maps integration
@@ -83,7 +83,7 @@ To revolutionize waste management in Nepal by empowering communities, rewarding 
 - **IoT Devices**: MQTT-based smart bin connectivity
 - **Analytics**: Google Analytics, custom environmental metrics
 
-## 🏗️ Architecture
+## Architecture
 
 ### Backend Architecture
 ```
@@ -125,7 +125,7 @@ To revolutionize waste management in Nepal by empowering communities, rewarding 
 - **Monitoring**: Prometheus + Grafana
 - **Logging**: Winston + ELK Stack
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Node.js 18+ and npm
@@ -239,7 +239,7 @@ Once the backend is running, visit `http://localhost:3000/api/docs` for interact
 - `POST /bazar/cart` - Add to cart
 - `POST /bazar/checkout` - Checkout process
 
-## 🧪 Testing
+## Testing
 
 ### Backend Testing
 ```bash
@@ -269,7 +269,7 @@ npm run test:ui
 npm run test:e2e
 ```
 
-## 🚀 Deployment
+## Deployment
 
 ### Production Deployment
 
@@ -340,7 +340,7 @@ VITE_GOOGLE_MAPS_API_KEY=your-maps-api-key
 VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
 ```
 
-## 📚 Documentation
+## Documentation
 
 - [Scalability Strategy](./docs/SCALABILITY_STRATEGY.md)
 - [Security Strategy](./docs/SECURITY_STRATEGY.md)
@@ -348,7 +348,7 @@ VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
 - [API Documentation](http://localhost:3000/api/docs)
 - [Database Schema](./reloop-backend/prisma/schema.prisma)
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -364,18 +364,18 @@ VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
 - Use conventional commit messages
 - Ensure code passes all linting and formatting checks
 
-## 📄 License
+##  License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - The amazing open-source community
 - Environmental organizations in Nepal
 - Local artists and recycling initiatives
 - Contributors and beta testers
 
-## 📞 Support
+##  Support
 
 For support, email support@reloop.com or join our community Discord server.
 
