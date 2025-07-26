@@ -7,10 +7,482 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Enums
+enum UserRole {
+  USER
+  ADMIN
+  ARTIST
+  BRAND_PARTNER
+}
+
+enum WasteCategory {
+  PLASTIC
+  ELECTRONIC
+  DECOMPOSABLE
+  METAL
+  GLASS
+  PAPER
+  TEXTILE
+}
+
+enum PostType {
+  HOTSPOT
+  ACHIEVEMENT
+  TIP
+  GENERAL
+  MISSION
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  POINTS
+  CASH
+  CARD
+  MIXED
+}
+
+enum RewardType {
+  CASH
+  ART
+  EVENT_TICKET
+  DISCOUNT
+  BADGE
+}
+
+enum PickupStatus {
+  REQUESTED
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum MissionStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum NotificationType {
+  PICKUP
+  REWARD
+  POST_LIKE
+  POST_COMMENT
+  ORDER_UPDATE
+  MISSION
+  ACHIEVEMENT
+}
+
+// Core Models
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  name      String
+  id                String    @id @default(cuid())
+  email             String    @unique
+  password          String
+  name              String
+  username          String?   @unique
+  phone             String?
+  avatar            String?
+  role              UserRole  @default(USER)
+  isEmailVerified   Boolean   @default(false)
+  is2FAEnabled      Boolean   @default(false)
+  twoFactorSecret   String?
+  
+  // Profile & Stats
+  totalPoints       Int       @default(0)
+  totalWasteKg      Float     @default(0)
+  co2SavedKg        Float     @default(0)
+  recyclingStreak   Int       @default(0)
+  lastActiveDate    DateTime?
+  
+  // Location
+  address           String?
+  latitude          Float?
+  longitude         Float?
+  
+  // Preferences
+  language          String    @default("en")
+  notificationPrefs Json?     // Notification preferences
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  // Relations
+  posts             Post[]
+  likes             PostLike[]
+  comments          PostComment[]
+  wasteSubmissions  WasteSubmission[]
+  pointTransactions PointTransaction[]
+  orders            Order[]
+  pickupRequests    PickupRequest[]
+  badges            UserBadge[]
+  notifications     Notification[]
+  cartItems         CartItem[]
+  missionParticipants MissionParticipant[]
+  artistProfile     ArtistProfile?
+  brandProfile      BrandProfile?
+  
+  @@map("users")
+}
+
+model Post {
+  id          String      @id @default(cuid())
+  content     String
+  imageUrl    String?
+  type        PostType    @default(GENERAL)
+  likesCount  Int         @default(0)
+  commentsCount Int       @default(0)
+  
+  authorId    String
+  author      User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  likes       PostLike[]
+  comments    PostComment[]
+  
+  @@map("posts")
+}
+
+model PostLike {
+  id      String @id @default(cuid())
+  userId  String
+  postId  String
+  
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post    Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
   createdAt DateTime @default(now())
+  
+  @@unique([userId, postId])
+  @@map("post_likes")
+}
+
+model PostComment {
+  id        String   @id @default(cuid())
+  content   String
+  userId    String
+  postId    String
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("post_comments")
+}
+
+model WasteCategory {
+  id          String @id @default(cuid())
+  name        String @unique
+  description String?
+  pointsPerKg Float  @default(1.0)
+  co2PerKg    Float  @default(0.5) // CO2 saved per kg
+  
+  wasteSubmissions WasteSubmission[]
+  
+  @@map("waste_categories")
+}
+
+model WasteSubmission {
+  id              String    @id @default(cuid())
+  userId          String
+  categoryId      String
+  
+  // Item details
+  barcode         String?
+  productName     String?
+  weight          Float
+  quantity        Int       @default(1)
+  imageUrl        String?
+  
+  // AI Classification
+  aiClassification Json?    // AI classifier results
+  aiConfidence    Float?
+  
+  // Points & Impact
+  pointsEarned    Int
+  co2Saved        Float
+  
+  // Location
+  dropPointId     String?
+  latitude        Float?
+  longitude       Float?
+  
+  createdAt       DateTime  @default(now())
+  
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category        WasteCategory @relation(fields: [categoryId], references: [id])
+  dropPoint       DropPoint?   @relation(fields: [dropPointId], references: [id])
+  
+  @@map("waste_submissions")
+}
+
+model PointTransaction {
+  id          String    @id @default(cuid())
+  userId      String
+  amount      Int       // Positive for earning, negative for spending
+  type        String    // "EARNED", "REDEEMED", "BONUS", etc.
+  description String
+  reference   String?   // Reference to related entity (order, submission, etc.)
+  
+  createdAt   DateTime  @default(now())
+  
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("point_transactions")
+}
+
+model Product {
+  id              String  @id @default(cuid())
+  name            String
+  description     String
+  price           Float
+  pointsPrice     Int?    // Price in points
+  imageUrl        String
+  category        String
+  materials       String[] // Materials used
+  isActive        Boolean @default(true)
+  stock           Int     @default(0)
+  
+  // Artist info
+  artistId        String?
+  artistProfile   ArtistProfile? @relation(fields: [artistId], references: [id])
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  orderItems      OrderItem[]
+  cartItems       CartItem[]
+  
+  @@map("products")
+}
+
+model ArtistProfile {
+  id          String @id @default(cuid())
+  userId      String @unique
+  bio         String?
+  portfolio   String[] // URLs to portfolio images
+  skills      String[]
+  rating      Float    @default(0)
+  totalSales  Int      @default(0)
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  products    Product[]
+  
+  @@map("artist_profiles")
+}
+
+model BrandProfile {
+  id          String @id @default(cuid())
+  userId      String @unique
+  companyName String
+  description String?
+  website     String?
+  logo        String?
+  
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("brand_profiles")
+}
+
+model CartItem {
+  id        String @id @default(cuid())
+  userId    String
+  productId String
+  quantity  Int    @default(1)
+  
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, productId])
+  @@map("cart_items")
+}
+
+model Order {
+  id            String        @id @default(cuid())
+  userId        String
+  totalAmount   Float
+  pointsUsed    Int           @default(0)
+  status        OrderStatus   @default(PENDING)
+  paymentMethod PaymentMethod
+  
+  // Shipping info
+  shippingAddress String
+  shippingPhone   String?
+  
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items         OrderItem[]
+  
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String @id @default(cuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Float
+  
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+  
+  @@map("order_items")
+}
+
+model DropPoint {
+  id          String  @id @default(cuid())
+  name        String
+  address     String
+  latitude    Float
+  longitude   Float
+  
+  // Accepted materials
+  acceptedCategories String[]
+  
+  // IoT Integration
+  deviceId    String? @unique
+  capacity    Float?  // Total capacity in kg
+  currentLoad Float?  @default(0) // Current load in kg
+  lastUpdate  DateTime?
+  
+  isActive    Boolean @default(true)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  wasteSubmissions WasteSubmission[]
+  pickupRequests   PickupRequest[]
+  
+  @@map("drop_points")
+}
+
+model PickupRequest {
+  id          String       @id @default(cuid())
+  userId      String
+  dropPointId String?
+  
+  // Request details
+  address     String
+  phone       String
+  description String?
+  preferredDate DateTime?
+  
+  status      PickupStatus @default(REQUESTED)
+  
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dropPoint   DropPoint?   @relation(fields: [dropPointId], references: [id])
+  
+  @@map("pickup_requests")
+}
+
+model Badge {
+  id          String @id @default(cuid())
+  name        String @unique
+  description String
+  iconUrl     String
+  criteria    Json   // Criteria for earning the badge
+  
+  userBadges  UserBadge[]
+  
+  @@map("badges")
+}
+
+model UserBadge {
+  id        String   @id @default(cuid())
+  userId    String
+  badgeId   String
+  earnedAt  DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge     Badge    @relation(fields: [badgeId], references: [id])
+  
+  @@unique([userId, badgeId])
+  @@map("user_badges")
+}
+
+model Mission {
+  id          String        @id @default(cuid())
+  title       String
+  description String
+  
+  // Mission details
+  targetAmount Float?       // Target waste amount in kg
+  pointsReward Int
+  bonusMultiplier Float     @default(1.0)
+  
+  // Timing
+  startDate   DateTime
+  endDate     DateTime
+  status      MissionStatus @default(ACTIVE)
+  
+  // Location (optional)
+  latitude    Float?
+  longitude   Float?
+  radius      Float?        // Radius in km
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  participants MissionParticipant[]
+  
+  @@map("missions")
+}
+
+model MissionParticipant {
+  id          String   @id @default(cuid())
+  userId      String
+  missionId   String
+  joinedAt    DateTime @default(now())
+  completed   Boolean  @default(false)
+  completedAt DateTime?
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mission     Mission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, missionId])
+  @@map("mission_participants")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  data      Json?            // Additional data
+  isRead    Boolean          @default(false)
+  
+  createdAt DateTime         @default(now())
+  
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("notifications")
+}
+
+model SystemConfig {
+  id    String @id @default(cuid())
+  key   String @unique
+  value Json
+  
+  updatedAt DateTime @updatedAt
+  
+  @@map("system_config")
 }

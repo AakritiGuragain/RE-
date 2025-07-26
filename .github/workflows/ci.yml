@@ -1,0 +1,311 @@
+name: ReLoop CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  NODE_VERSION: '18'
+  POSTGRES_VERSION: '14'
+
+jobs:
+  # =============================================================================
+  # BACKEND TESTING
+  # =============================================================================
+  backend-test:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: reloop_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: reloop-backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: ./reloop-backend
+        run: npm ci
+
+      - name: Generate Prisma client
+        working-directory: ./reloop-backend
+        run: npx prisma generate
+
+      - name: Run database migrations
+        working-directory: ./reloop-backend
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/reloop_test
+
+      - name: Run backend tests
+        working-directory: ./reloop-backend
+        run: npm test
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/reloop_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-jwt-secret
+          JWT_REFRESH_SECRET: test-refresh-secret
+
+      - name: Run backend linting
+        working-directory: ./reloop-backend
+        run: npm run lint
+
+      - name: Check TypeScript compilation
+        working-directory: ./reloop-backend
+        run: npm run build
+
+  # =============================================================================
+  # FRONTEND TESTING
+  # =============================================================================
+  frontend-test:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Run frontend tests
+        run: npm test
+        env:
+          VITE_API_URL: http://localhost:3000
+
+      - name: Run frontend linting
+        run: npm run lint
+
+      - name: Check TypeScript compilation
+        run: npm run type-check
+
+      - name: Build frontend
+        run: npm run build
+        env:
+          VITE_API_URL: http://localhost:3000
+          VITE_APP_NAME: ReLoop
+
+  # =============================================================================
+  # SECURITY SCANNING
+  # =============================================================================
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Run npm audit (Backend)
+        working-directory: ./reloop-backend
+        run: npm audit --audit-level=high
+
+      - name: Run npm audit (Frontend)
+        run: npm audit --audit-level=high
+
+  # =============================================================================
+  # CODE QUALITY
+  # =============================================================================
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  # =============================================================================
+  # DOCKER BUILD
+  # =============================================================================
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: [backend-test, frontend-test]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./reloop-backend
+          file: ./reloop-backend/Dockerfile
+          push: false
+          tags: reloop-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build frontend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.frontend
+          push: false
+          tags: reloop-frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # =============================================================================
+  # INTEGRATION TESTS
+  # =============================================================================
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Start services with Docker Compose
+        run: |
+          cp reloop-backend/.env.example reloop-backend/.env
+          cp .env.example .env.local
+          docker-compose up -d --build
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@postgres:5432/reloop
+          REDIS_URL: redis://redis:6379
+
+      - name: Wait for services to be ready
+        run: |
+          timeout 300 bash -c 'until curl -f http://localhost:3000/health; do sleep 5; done'
+          timeout 300 bash -c 'until curl -f http://localhost:5173; do sleep 5; done'
+
+      - name: Run integration tests
+        run: |
+          # Add your integration test commands here
+          echo "Integration tests would run here"
+
+      - name: Stop services
+        if: always()
+        run: docker-compose down -v
+
+  # =============================================================================
+  # DEPLOYMENT (Production)
+  # =============================================================================
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [backend-test, frontend-test, security-scan, integration-test]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    environment:
+      name: production
+      url: https://reloop.com
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Deploy to production
+        run: |
+          echo "Production deployment would happen here"
+          # Add your deployment commands here
+          # Examples:
+          # - Deploy to Railway, Vercel, or your cloud provider
+          # - Update Kubernetes deployments
+          # - Run database migrations
+          # - Invalidate CDN cache
+
+      - name: Run smoke tests
+        run: |
+          # Add smoke tests to verify deployment
+          echo "Smoke tests would run here"
+
+      - name: Notify team
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#deployments'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # =============================================================================
+  # DEPLOYMENT (Staging)
+  # =============================================================================
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [backend-test, frontend-test, security-scan]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    
+    environment:
+      name: staging
+      url: https://staging.reloop.com
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to staging
+        run: |
+          echo "Staging deployment would happen here"
+          # Add your staging deployment commands here

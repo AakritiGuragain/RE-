@@ -1,25 +1,484 @@
-# Logs
-logs
-*.log
+# =============================================================================
+# RELOOP PROJECT .GITIGNORE
+# =============================================================================
+# This file specifies intentionally untracked files that Git should ignore
+
+# =============================================================================
+# ENVIRONMENT & SECRETS
+# =============================================================================
+# Never commit environment files with secrets
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+.env.*.local
+
+# Configuration files with secrets
+config/google-cloud-key.json
+config/google-cloud-service-account.json
+config/firebase-key.json
+config/dialogflow-key.json
+config/apns-key.p8
+config/aws-credentials.json
+config/*.pem
+config/*.key
+config/*.crt
+config/*.p12
+
+# =============================================================================
+# NODE.JS & NPM
+# =============================================================================
+# Dependencies
+node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Grunt intermediate storage
+.grunt
+
+# Bower dependency directory
+bower_components
+
+# node-waf configuration
+.lock-wscript
+
+# Compiled binary addons
+build/Release
+
+# Dependency directories
+jspm_packages/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache
+.cache
+.parcel-cache
+
+# Next.js build output
+.next
+out
+
+# Nuxt.js build / generate output
+.nuxt
 dist
-dist-ssr
+
+# Gatsby files
+.cache/
+public
+
+# Vite build output
+dist/
+dist-ssr/
 *.local
 
-# Editor directories and files
-.vscode/*
+# Rollup.js default build output
+dist/
+
+# Snowpack dependency directory
+web_modules/
+
+# =============================================================================
+# BACKEND SPECIFIC (NestJS/Node.js)
+# =============================================================================
+# Build output
+reloop-backend/dist/
+reloop-backend/build/
+
+# NestJS specific
+reloop-backend/.env
+reloop-backend/.env.local
+reloop-backend/.env.*.local
+
+# Prisma
+reloop-backend/prisma/migrations/
+!reloop-backend/prisma/migrations/.gitkeep
+reloop-backend/prisma/dev.db
+reloop-backend/prisma/dev.db-journal
+
+# Uploads directory (use cloud storage in production)
+reloop-backend/uploads/
+!reloop-backend/uploads/.gitkeep
+
+# Logs
+reloop-backend/logs/
+!reloop-backend/logs/.gitkeep
+
+# =============================================================================
+# FRONTEND SPECIFIC (React/Vite)
+# =============================================================================
+# Build output
+build/
+dist/
+dist-ssr/
+
+# Vite specific
+.vite/
+
+# React specific
+.eslintcache
+
+# =============================================================================
+# DATABASE
+# =============================================================================
+# SQLite databases (development)
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# Database dumps
+*.sql
+*.dump
+
+# Database backup files
+backups/*.sql
+backups/*.gz
+backups/*.tar.gz
+!backups/.gitkeep
+
+# =============================================================================
+# DOCKER
+# =============================================================================
+# Docker volumes
+docker-volumes/
+
+# Docker override files
+docker-compose.override.yml
+docker-compose.local.yml
+
+# =============================================================================
+# CLOUD & DEPLOYMENT
+# =============================================================================
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Kubernetes secrets
+k8s/secrets/
+k8s/configmaps/
+
+# Helm charts
+charts/*.tgz
+
+# =============================================================================
+# MONITORING & LOGS
+# =============================================================================
+# Application logs
+logs/
+*.log
+*.log.*
+
+# Error logs
+error.log
+access.log
+combined.log
+
+# PM2 logs
+.pm2/
+
+# =============================================================================
+# TESTING
+# =============================================================================
+# Test coverage
+coverage/
+.coverage
+*.lcov
+
+# Jest
+jest.config.local.js
+
+# Cypress
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+
+# =============================================================================
+# EDITOR & IDE
+# =============================================================================
+# Visual Studio Code
+.vscode/
 !.vscode/extensions.json
-.idea
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# =============================================================================
+# OPERATING SYSTEM
+# =============================================================================
+# macOS
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# =============================================================================
+# TEMPORARY FILES
+# =============================================================================
+# Temporary directories
+tmp/
+temp/
+.tmp/
+.temp/
+
+# Cache directories
+.cache/
+cache/
+
+# =============================================================================
+# SECURITY & CERTIFICATES
+# =============================================================================
+# SSL certificates
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+
+# SSH keys
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+
+# GPG keys
+*.gpg
+*.asc
+
+# =============================================================================
+# MEDIA & UPLOADS
+# =============================================================================
+# User uploaded files (use cloud storage)
+uploads/
+!uploads/.gitkeep
+
+# Generated images
+generated/
+
+# Large media files
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.webm
+*.mkv
+*.m4v
+*.3gp
+*.3g2
+*.rm
+*.rmvb
+*.vob
+*.asf
+*.m2ts
+*.mts
+*.ts
+*.mxf
+
+# =============================================================================
+# PACKAGE MANAGERS
+# =============================================================================
+# Yarn
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
+
+# pnpm
+.pnpm-store/
+
+# Rush
+common/temp/
+
+# =============================================================================
+# ANALYTICS & TRACKING
+# =============================================================================
+# Google Analytics
+.ga
+
+# Mixpanel
+.mixpanel
+
+# =============================================================================
+# MISCELLANEOUS
+# =============================================================================
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+*.save
+
+# Archive files
+*.zip
+*.tar
+*.tar.gz
+*.tar.bz2
+*.rar
+*.7z
+
+# Lock files (keep package-lock.json but ignore others)
+yarn.lock
+pnpm-lock.yaml
+
+# Runtime configuration
+.runtime
+
+# Local development overrides
+local.json
+local.js
+local.ts
+
+# Documentation build
+docs/_build/
+docs/.doctrees/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# Poetry
+poetry.lock
+
+# =============================================================================
+# PROJECT SPECIFIC
+# =============================================================================
+# ReLoop specific temporary files
+.reloop-temp/
+
+# AI model files (too large for git)
+models/*.h5
+models/*.pkl
+models/*.joblib
+models/*.model
+
+# Generated API documentation
+api-docs/
+
+# Performance test results
+performance-results/
+
+# Load test results
+load-test-results/
+
+# Monitoring data
+monitoring-data/
+
+# =============================================================================
+# KEEP THESE DIRECTORIES
+# =============================================================================
+# Keep empty directories with .gitkeep files
+!**/.gitkeep
 .env
